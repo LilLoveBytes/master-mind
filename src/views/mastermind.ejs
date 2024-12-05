@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title><%=title%></title>
+	</head>
+	<body>
+		<div id="game-container">
+			<h1>Hello, there! Welcome to <%=title%>!</h1>
+			<p>Are you a mastermind? Try to guess my secret code!</p>
+			<button id="start-game">Start New Game</button>
+
+			<form id="guess-form">
+				<input
+					type="text"
+					id="guess-input"
+					maxlength="4"
+					placeholder="Enter 4 numbers"
+				/>
+				<button type="submit">Submit Guess</button>
+			</form>
+			<div id="feedback"></div>
+			<div id="history"></div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+		<script>
+			const form = document.getElementById("guess-form");
+			const feedback = document.getElementById("feedback");
+			const history = document.getElementById("history");
+			const startGame = document.getElementById("start-game");
+
+			startGame.addEventListener("click", async (e) => {
+				console.log("start game pressed");
+				const url = "http://localhost:3000/game/start";
+				document.getElementById("guess-input").value = "";
+				try {
+					const response = await axios.post(url);
+					const result = response.data;
+					console.log("response from .ejs file start new", result);
+				} catch (error) {
+					console.error(error);
+				}
+			});
+
+			form.addEventListener("submit", async (e) => {
+				console.log("submit pressed");
+				e.preventDefault();
+				const guess = document.getElementById("guess-input").value;
+				console.log("submit pressed guess", guess);
+				const url = "http://localhost:3000/game/guess";
+
+				try {
+					const response = await axios.post(url, { guess });
+					const result = response.data;
+					console.log("response from .ejs file submit guess", result);
+					// clear the input field
+					document.getElementById("guess-input").value = "";
+
+					feedback.textContent = result.feedback;
+          history.textContent = result.gameHistory;
+					
+				} catch (error) {
+					console.error(error);
+				}
+			});
+		</script>
+	</body>
+</html>
