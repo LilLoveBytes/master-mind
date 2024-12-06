@@ -10,7 +10,7 @@ exports.startGame = async (req, res) => {
 	try {
 		secretCombo = await random.generateSecretCombo();
 		attempts = 0;
-    guesses = [];
+		guesses = [];
 		console.log("Secret combo:", secretCombo);
 		res
 			.status(200)
@@ -60,8 +60,7 @@ exports.getGameStatus = (req, res) => {
 		let attemptsMade = attempts;
 		let attemptsRemaining = 10 - attempts;
 
-		return  `${attemptsMade} guess(es) made so far. ${attemptsRemaining} attempts remaining. \nGuesses: ${guesses}`;  
-
+		return `${attemptsMade} guess(es) made so far. ${attemptsRemaining} attempts remaining. \nGuesses: ${guesses}`;
 	} catch (error) {
 		// res.status(500).json({ message: "Error getting game status", error });
 		console.error(error);
@@ -71,34 +70,31 @@ exports.getGameStatus = (req, res) => {
 exports.giveFeedback = (guessArray, secretCombo) => {
 	// initialize counts
 	let correctNumbers = 0;
-	let exactMatchces = 0;
+	let exactMatches = 0;
 
-	// compare guess to secret combo
-	// if guess matches, return "You win!"
-	if (guessArray === secretCombo) {
+	//frequency map for secret combo
+	const secretComboNumCount = {};
+	secretCombo.forEach((num) => {
+		secretComboNumCount[num] = (secretComboNumCount[num] || 0) + 1;
+	});
+
+	//check for correct numbers (any position)
+	for (let i = 0; i < guessArray.length; i++) {
+		if (secretComboNumCount[guessArray[i]]) {
+			// if the number in guess array is in the freq map
+			correctNumbers++; // increment correct numbers count
+			secretComboNumCount[guessArray[i]]--; // decrement the count in the freq map
+		}
+	}
+	// check for correct positions (exact matches)
+	for (let i = 0; i < guessArray.length; i++) {
+		if (guessArray[i] === secretCombo[i]) {
+			exactMatches++;
+		}
+	}
+	if (exactMatches === 4) {
 		return "You win!";
 	} else {
-		// if guess doesn't match, return conditional feedback
-
-		//check for correct numbers (any position)
-		for (let i = 0; i < guessArray.length; i++) {
-			if (secretCombo.includes(guessArray[i])) {
-				correctNumbers++;
-			}
-		}
-		// check for correct positions (exact matches)
-		for (let i = 0; i < guessArray.length; i++) {
-			if (guessArray[i] === secretCombo[i]) {
-				exactMatchces++;
-			}
-
-			return (
-				correctNumbers +
-				" correct number(s) " +
-				"with " +
-				exactMatchces +
-				" in the correct position"
-			);
-		}
+		return `Your guess has ${correctNumbers} correct number(s) with ${exactMatches} in the correct position`;
 	}
 };
